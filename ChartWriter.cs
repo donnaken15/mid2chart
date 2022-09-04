@@ -12,6 +12,7 @@ namespace mid2chart {
             ChartWriter.dummy = dummy;
             using (var output = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.ReadWrite)) {
                 using (var file = new StreamWriter(output)) {
+                    // wtf
                     file.WriteLine("[Song]");
                     file.WriteLine("{");
                     file.WriteLine("\tName = \"" + s.songname + "\"");
@@ -41,8 +42,13 @@ namespace mid2chart {
                     file.WriteLine("}");
                     file.WriteLine("[Events]");
                     file.WriteLine("{");
-                    foreach (Section ss in s.sections) {
+                    foreach (Section ss in s.sections)
+                    {
                         file.WriteLine("\t" + ss.tick + " = E \"section " + ss.name + "\"");
+                    }
+                    foreach (TrackEvent ss in s.eventsGlobal)
+                    {
+                        file.WriteLine("\t" + ss.tick + " = E \"" + ss.text + "\"");
                     }
                     file.WriteLine("}");
                     if (s.eGuitar.Count > 0) {
@@ -160,9 +166,17 @@ namespace mid2chart {
         }
 
         private static void WriteNotes(StreamWriter file, List<Event> notes, List<NoteSection> forceHOPO, List<NoteSection> forceStrum, List<NoteSection> tap, List<NoteSection> openNotes, bool isKeys) {
+            TrackEvent _event = null;
+            Note n = null;
             foreach (Event e in notes) {
-                var n = e as Note;
-                if (n != null) {
+                n = e as Note;
+                _event = e as TrackEvent;
+                if (_event != null)
+                {
+                    file.WriteLine("\t" + _event.tick + " = E " + _event.text);
+                }
+                if (n != null)
+                {
                     if (Program.readOpenNotes && IsTap(n, openNotes)) {
                         if (dummy || Program.editable)
                             file.WriteLine("\t" + n.tick + " = E O");

@@ -8,6 +8,7 @@ namespace mid2chart {
         public long offset = 0;
         public List<Sync> sync = new List<Sync>();
         public List<Section> sections = new List<Section>();
+        public List<TrackEvent> eventsGlobal = new List<TrackEvent>();
         public List<Event> eGuitar = new List<Event>();
         public List<Event> mGuitar = new List<Event>();
         public List<Event> hGuitar = new List<Event>();
