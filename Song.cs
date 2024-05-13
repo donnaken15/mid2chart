@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace mid2chart {
 	internal class Song {
@@ -73,7 +72,10 @@ namespace mid2chart {
 			foreach(NoteSection t in tap) {
 				forceHOPO.Add(t);
 			}
-			return forceHOPO.OrderBy(f => f.tick).ToList();
+			forceHOPO.Sort(delegate(NoteSection a, NoteSection b) {
+				return a.tick.CompareTo(b.tick);
+			});
+			return forceHOPO;
 		}
 
 		internal void FixOverlaps() {

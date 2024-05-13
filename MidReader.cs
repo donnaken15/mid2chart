@@ -1,6 +1,5 @@
 ﻿using System;
 using NAudio.Midi;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace mid2chart {
@@ -11,7 +10,7 @@ namespace mid2chart {
 		internal static Song ReadMidi(string path, bool unforceNAudioStrictMode) {
 			s = new Song();
 			midi = new MidiFile(path, !unforceNAudioStrictMode);
-			var trackCount = midi.Events.Count();
+			var trackCount = midi.Events.Tracks; // ??????????????????????
 			scaler = 192.0D / midi.DeltaTicksPerQuarterNote;
 			WriteSync(midi.Events[0]);
 			for (var i = 1; i < trackCount; i++) {

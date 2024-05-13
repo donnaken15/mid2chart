@@ -27,7 +27,7 @@ namespace NAudio.Midi
 			}
 			if (length != 4)
 			{
-				throw new FormatException(String.Format("Invalid time signature length: Got {0}, expected 4", length));
+				throw new FormatException(String.Format("Invalid time signature data length: Got {0}, expected 4", length));
 			}
 			numerator = br.ReadByte();
 			denominator = br.ReadByte(); //2=quarter, 3=eigth etc
@@ -52,6 +52,11 @@ namespace NAudio.Midi
 			this.ticksInMetronomeClick = (byte)ticksInMetronomeClick;
 			this.no32ndNotesInQuarterNote = (byte)no32ndNotesInQuarterNote;
 		}
+
+		/// <summary>
+		/// Creates a deep clone of this MIDI event.
+		/// </summary>
+		public override MidiEvent Clone() => (TimeSignatureEvent)MemberwiseClone();
 
 		/// <summary>
 		/// Numerator (number of beats in a bar)

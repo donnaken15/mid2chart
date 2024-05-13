@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 
 namespace mid2chart {
 	static class Program {
@@ -151,7 +150,7 @@ namespace mid2chart {
 								else
 								{
 									string filename;
-									if (!dontWriteDummy && (s.tapGuitar.Count() > 0 || s.tapBass.Count() > 0))
+									if (!dontWriteDummy && (s.tapGuitar.Count > 0 || s.tapBass.Count > 0))
 									{
 										filename = args[i].Substring(0, args[i].Length - 4) + " (Dummy).chart";
 										Stopwatch.Step("Writing chart: " + filename);

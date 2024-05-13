@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 
 namespace NAudio.Midi
 {
@@ -8,6 +7,7 @@ namespace NAudio.Midi
 	/// Represents an individual MIDI event
 	/// </summary>
 	public class MidiEvent
+		: ICloneable
 	{
 		/// <summary>The MIDI command code</summary>
 		private MidiCommandCode commandCode;
@@ -56,6 +56,18 @@ namespace NAudio.Midi
 						me = new NoteEvent(absoluteTime, channel, commandCode, data1, data2);
 					}
 					break;
+				case MidiCommandCode.ControlChange:
+					me = new ControlChangeEvent(absoluteTime,channel,(MidiController)data1,data2);
+					break;
+				case MidiCommandCode.PatchChange:
+					me = new PatchChangeEvent(absoluteTime,channel,data1);
+					break;
+				case MidiCommandCode.ChannelAfterTouch:
+					me = new ChannelAfterTouchEvent(absoluteTime,channel,data1);
+					break;
+				case MidiCommandCode.PitchWheelChange:
+					me = new PitchWheelChangeEvent(absoluteTime, channel, data1 + (data2 << 7));
+					break;
 				case MidiCommandCode.TimingClock:
 				case MidiCommandCode.StartSequence:
 				case MidiCommandCode.ContinueSequence:
@@ -63,8 +75,8 @@ namespace NAudio.Midi
 				case MidiCommandCode.AutoSensing:
 					me = new MidiEvent(absoluteTime,channel,commandCode);
 					break;
-				case MidiCommandCode.MetaEvent:
-				case MidiCommandCode.Sysex:
+				//case MidiCommandCode.MetaEvent:
+				//case MidiCommandCode.Sysex:
 				default:
 					throw new FormatException(String.Format("Unsupported MIDI Command Code for Raw Message {0}", commandCode));
 			}
@@ -80,7 +92,7 @@ namespace NAudio.Midi
 		/// <returns>A new MidiEvent</returns>
 		public static MidiEvent ReadNextEvent(BinaryReader br, MidiEvent previous)
 		{
-			int deltaTime = MidiEvent.ReadVarInt(br);
+			int deltaTime = ReadVarInt(br);
 			MidiCommandCode commandCode;
 			int channel = 1;
 			byte b = br.ReadByte();
@@ -114,6 +126,18 @@ namespace NAudio.Midi
 			case MidiCommandCode.NoteOff:
 			case MidiCommandCode.KeyAfterTouch:
 				me = new NoteEvent(br);
+				break;
+			case MidiCommandCode.ControlChange:
+				me = new ControlChangeEvent(br);
+				break;
+			case MidiCommandCode.PatchChange:
+				me = new PatchChangeEvent(br);
+				break;
+			case MidiCommandCode.ChannelAfterTouch:
+				me = new ChannelAfterTouchEvent(br);
+				break;
+			case MidiCommandCode.PitchWheelChange:
+				me = new PitchWheelChangeEvent(br);
 				break;
 			case MidiCommandCode.TimingClock:
 			case MidiCommandCode.StartSequence:
@@ -163,17 +187,23 @@ namespace NAudio.Midi
 		public MidiEvent(long absoluteTime, int channel, MidiCommandCode commandCode)
 		{
 			this.absoluteTime = absoluteTime;
-			this.Channel = channel;
+			Channel = channel;
 			this.commandCode = commandCode;
 		}
+
+		/// <summary>
+		/// Creates a deep clone of this MIDI event.
+		/// </summary>
+		public virtual MidiEvent Clone() => (MidiEvent)MemberwiseClone();
+
+		object ICloneable.Clone() => Clone();
 
 		/// <summary>
 		/// The MIDI Channel Number for this event (1-16)
 		/// </summary>
 		public virtual int Channel
 		{
-			get
-			{
+			get {
 				return channel;
 			}
 			set

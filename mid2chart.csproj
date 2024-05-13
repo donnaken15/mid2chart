@@ -44,12 +44,17 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>mid2chart.Program</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -59,18 +64,30 @@
     <Compile Include="ChartWriter.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="MidReader.cs" />
+    <Compile Include="NAudio\MergeSort.cs" />
+    <Compile Include="NAudio\Midi\ChannelAfterTouchEvent.cs" />
+    <Compile Include="NAudio\Midi\ControlChangeEvent.cs" />
+    <Compile Include="NAudio\Midi\KeySignatureEvent.cs" />
     <Compile Include="NAudio\Midi\MetaEvent.cs" />
     <Compile Include="NAudio\Midi\MetaEventType.cs" />
     <Compile Include="NAudio\Midi\MidiCommandCode.cs" />
+    <Compile Include="NAudio\Midi\MidiController.cs" />
     <Compile Include="NAudio\Midi\MidiEvent.cs" />
     <Compile Include="NAudio\Midi\MidiEventCollection.cs" />
+    <Compile Include="NAudio\Midi\MidiEventComparer.cs" />
     <Compile Include="NAudio\Midi\MidiFile.cs" />
     <Compile Include="NAudio\Midi\NoteEvent.cs" />
     <Compile Include="NAudio\Midi\NoteOnEvent.cs" />
+    <Compile Include="NAudio\Midi\PatchChangeEvent.cs" />
+    <Compile Include="NAudio\Midi\PitchWheelChangeEvent.cs" />
+    <Compile Include="NAudio\Midi\RawMetaEvent.cs" />
+    <Compile Include="NAudio\Midi\SequencerSpecificEvent.cs" />
+    <Compile Include="NAudio\Midi\SmpteOffsetEvent.cs" />
     <Compile Include="NAudio\Midi\SysexEvent.cs" />
     <Compile Include="NAudio\Midi\TempoEvent.cs" />
     <Compile Include="NAudio\Midi\TextEvent.cs" />
     <Compile Include="NAudio\Midi\TimeSignatureEvent.cs" />
+    <Compile Include="NAudio\Midi\TrackSequenceNumberEvent.cs" />
     <Compile Include="NAudio\Utils\ByteEncoding.cs" />
     <Compile Include="Note.cs" />
     <Compile Include="NoteSection.cs" />
@@ -96,6 +113,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

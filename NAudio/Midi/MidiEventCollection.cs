@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using NAudio.Utils;
 
 namespace NAudio.Midi
@@ -11,10 +10,8 @@ namespace NAudio.Midi
 	/// </summary>
 	public class MidiEventCollection : IEnumerable<IList<MidiEvent>>
 	{
-		int midiFileType;
-		List<IList<MidiEvent>> trackEvents;
-		int deltaTicksPerQuarterNote;
-		long startAbsoluteTime;
+		private int midiFileType;
+		private readonly List<IList<MidiEvent>> trackEvents;
 
 		/// <summary>
 		/// Creates a new Midi Event collection
@@ -24,45 +21,26 @@ namespace NAudio.Midi
 		public MidiEventCollection(int midiFileType, int deltaTicksPerQuarterNote)
 		{
 			this.midiFileType = midiFileType;
-			this.deltaTicksPerQuarterNote = deltaTicksPerQuarterNote;
-			this.startAbsoluteTime = 0;
+			DeltaTicksPerQuarterNote = deltaTicksPerQuarterNote;
+			StartAbsoluteTime = 0;
 			trackEvents = new List<IList<MidiEvent>>();
 		}
 
 		/// <summary>
 		/// The number of tracks
 		/// </summary>
-		public int Tracks
-		{
-			get
-			{
-				return trackEvents.Count;
-			}
-		}
+		public int Tracks => trackEvents.Count;
 
 		/// <summary>
 		/// The absolute time that should be considered as time zero
 		/// Not directly used here, but useful for timeshifting applications
 		/// </summary>
-		public long StartAbsoluteTime
-		{
-			get
-			{
-				return startAbsoluteTime;
-			}
-			set
-			{
-				startAbsoluteTime = value;
-			}
-		}
+		public long StartAbsoluteTime { get; set; }
 
 		/// <summary>
 		/// The number of ticks per quarter note
 		/// </summary>
-		public int DeltaTicksPerQuarterNote
-		{
-			get { return deltaTicksPerQuarterNote; }
-		}
+		public int DeltaTicksPerQuarterNote { get; }
 
 		/// <summary>
 		/// Gets events on a specified track
@@ -79,10 +57,7 @@ namespace NAudio.Midi
 		/// </summary>
 		/// <param name="trackNumber">Track number</param>
 		/// <returns>The list of events</returns>
-		public IList<MidiEvent> this[int trackNumber]
-		{
-			get { return trackEvents[trackNumber]; }
-		}
+		public IList<MidiEvent> this[int trackNumber] => trackEvents[trackNumber];
 
 		/// <summary>
 		/// Adds a new track
@@ -126,13 +101,12 @@ namespace NAudio.Midi
 			trackEvents.Clear();
 		}
 
-		/*/// <summary>
+		/// <summary>
 		/// The MIDI file type
 		/// </summary>
 		public int MidiFileType
 		{
-			get
-			{
+			get {
 				return midiFileType;
 			}
 			set
@@ -152,7 +126,7 @@ namespace NAudio.Midi
 					}
 				}
 			}
-		}*/
+		}
 
 		/// <summary>
 		/// Adds an event to the appropriate track depending on file type
@@ -214,7 +188,7 @@ namespace NAudio.Midi
 			}
 		}
 
-		/*private void ExplodeToManyTracks()
+		private void ExplodeToManyTracks()
 		{
 			IList<MidiEvent> originalList = trackEvents[0];
 			Clear();
@@ -256,7 +230,7 @@ namespace NAudio.Midi
 		{
 			var comparer = new MidiEventComparer();
 			// 1. sort each track
-			foreach (List<MidiEvent> list in trackEvents)
+			foreach (var list in trackEvents)
 			{
 				MergeSort.Sort(list, comparer);
 
@@ -279,7 +253,7 @@ namespace NAudio.Midi
 			// 3. remove empty tracks and add missing
 			while (track < trackEvents.Count)
 			{
-				IList<MidiEvent> list = trackEvents[track];
+				var list = trackEvents[track];
 				if (list.Count == 0)
 				{
 					RemoveTrack(track);
@@ -300,7 +274,7 @@ namespace NAudio.Midi
 					}
 				}
 			}
-		}*/
+		}
 
 		/// <summary>
 		/// Gets an enumerator for the lists of track events
