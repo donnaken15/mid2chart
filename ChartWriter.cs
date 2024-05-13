@@ -171,7 +171,7 @@ namespace mid2chart {
             foreach (Event e in notes) {
                 n = e as Note;
                 _event = e as TrackEvent;
-                if (_event != null)
+                if (_event != null && !_event.text.StartsWith("PART ") && _event.text != "")
                 {
                     file.WriteLine("\t" + _event.tick + " = E " + _event.text);
                 }

@@ -141,6 +141,7 @@ namespace mid2chart {
                 if (note != null && note.OffEvent != null)
                 {
                     var tick = RoundToValidValue((long)Math.Floor(note.AbsoluteTime * scaler));
+                    // SUS?!?!??! kill me
                     var sus = RoundToValidValue((long)Math.Floor(note.OffEvent.AbsoluteTime * scaler)) - tick;
                     int n = note.NoteNumber;
                     if (sec == 0)

@@ -21,7 +21,11 @@ namespace NAudio.Midi
         /// <param name="length">The data length</param>
         public TimeSignatureEvent(BinaryReader br,int length) 
         {
-            if(length != 4) 
+            if (length == 0) // how does this happen
+            {
+                length = 4;
+            }
+            if (length != 4)
             {
                 throw new FormatException(String.Format("Invalid time signature length: Got {0}, expected 4", length));
             }
