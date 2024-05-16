@@ -194,9 +194,15 @@ namespace NAudio.Midi
 		/// <summary>
 		/// Creates a deep clone of this MIDI event.
 		/// </summary>
-		public virtual MidiEvent Clone() => (MidiEvent)MemberwiseClone();
+		public virtual MidiEvent Clone()
+		{
+			return (MidiEvent)MemberwiseClone();
+		}
 
-		object ICloneable.Clone() => Clone();
+		object ICloneable.Clone()
+		{
+			return Clone();
+		}
 
 		/// <summary>
 		/// The MIDI Channel Number for this event (1-16)

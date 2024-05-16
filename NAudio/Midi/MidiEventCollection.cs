@@ -29,7 +29,13 @@ namespace NAudio.Midi
 		/// <summary>
 		/// The number of tracks
 		/// </summary>
-		public int Tracks => trackEvents.Count;
+		public int Tracks
+		{
+			get
+			{
+				return trackEvents.Count;
+			}
+		}
 
 		/// <summary>
 		/// The absolute time that should be considered as time zero
@@ -40,7 +46,7 @@ namespace NAudio.Midi
 		/// <summary>
 		/// The number of ticks per quarter note
 		/// </summary>
-		public int DeltaTicksPerQuarterNote { get; }
+		public int DeltaTicksPerQuarterNote { get; set; } // idgaf
 
 		/// <summary>
 		/// Gets events on a specified track
@@ -57,7 +63,13 @@ namespace NAudio.Midi
 		/// </summary>
 		/// <param name="trackNumber">Track number</param>
 		/// <returns>The list of events</returns>
-		public IList<MidiEvent> this[int trackNumber] => trackEvents[trackNumber];
+		public IList<MidiEvent> this[int trackNumber]
+		{
+			get
+			{
+				return trackEvents[trackNumber];
+			}
+		}
 
 		/// <summary>
 		/// Adds a new track

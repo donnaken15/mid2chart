@@ -47,32 +47,59 @@ namespace NAudio.Midi
 		/// <summary>
 		/// Creates a deep clone of this MIDI event.
 		/// </summary>
-		public override MidiEvent Clone() => (SmpteOffsetEvent)MemberwiseClone();
+		public override MidiEvent Clone()
+		{
+			return (SmpteOffsetEvent)MemberwiseClone();
+		}
 
 		/// <summary>
 		/// Hours
 		/// </summary>
-		public int Hours => hours;
+		public int Hours { get { return hours; } }
 
 		/// <summary>
 		/// Minutes
 		/// </summary>
-		public int Minutes => minutes;
+		public int Minutes
+		{
+			get
+			{
+				return minutes;
+			}
+		}
 
 		/// <summary>
 		/// Seconds
 		/// </summary>
-		public int Seconds => seconds;
+		public int Seconds
+		{
+			get
+			{
+				return seconds;
+			}
+		}
 
 		/// <summary>
 		/// Frames
 		/// </summary>
-		public int Frames => frames;
+		public int Frames
+		{
+			get
+			{
+				return frames;
+			}
+		}
 
 		/// <summary>
 		/// SubFrames
 		/// </summary>
-		public int SubFrames => subFrames;
+		public int SubFrames
+		{
+			get
+			{
+				return subFrames;
+			}
+		}
 
 
 		/// <summary>

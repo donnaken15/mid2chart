@@ -6,7 +6,7 @@ namespace mid2chart {
 		internal static bool editable, rbLogic, broken, fixForces, fixSp, fixDoubleHopo, dontForceChords,
 			fixOverlaps, eighthHopo, sixteenthStrum, keysOnBass, keysOnGuitar, bassOnGuitar,
 			gh1, skipPause, readOpenNotes, openNoteStrum, dontWriteDummy, unforceNAudioStrictMode, tapToHopo;
-		static void Main(string[] args)
+		public static void Main(string[] args)
 		{
 			string dir = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
 			try

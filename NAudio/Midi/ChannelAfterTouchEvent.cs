@@ -76,7 +76,7 @@ namespace NAudio.Midi
 		/// </summary>
 		public override string ToString()
 		{
-			return $"{base.ToString()} {afterTouchPressure}";
+			return base.ToString() + ' ' + afterTouchPressure;
 		}
 	}
 }

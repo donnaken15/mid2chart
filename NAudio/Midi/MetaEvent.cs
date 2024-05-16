@@ -46,7 +46,10 @@ namespace NAudio.Midi
 		/// <summary>
 		/// Creates a deep clone of this MIDI event.
 		/// </summary>
-		public override MidiEvent Clone() => new MetaEvent(metaEvent, metaDataLength, AbsoluteTime);
+		public override MidiEvent Clone()
+		{
+			return new MetaEvent(metaEvent, metaDataLength, AbsoluteTime);
+		}
 
 		/// <summary>
 		/// Reads a meta-event from a stream
@@ -116,7 +119,7 @@ namespace NAudio.Midi
 		/// </summary>
 		public override string ToString()
 		{
-			return $"{AbsoluteTime} {metaEvent}";
+			return AbsoluteTime.ToString() + ' ' + metaEvent.ToString();
 		}
 
 		/// <summary>

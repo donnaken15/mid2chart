@@ -29,7 +29,13 @@ namespace NAudio.Midi
 		/// <summary>
 		/// MIDI File format
 		/// </summary>
-		public int FileFormat => fileFormat;
+		public int FileFormat
+		{
+			get
+			{
+				return fileFormat;
+			}
+		}
 
 		/// <summary>
 		/// Opens a MIDI file for reading
@@ -149,7 +155,7 @@ namespace NAudio.Midi
 									if (br.BaseStream.Position < startPos + chunkSize)
 									{
 										throw new FormatException(
-											$"End Track event was not the last MIDI event on track {track}");
+											"End Track event was not the last MIDI event on track " + track);
 									}
 								}
 							}
@@ -160,12 +166,12 @@ namespace NAudio.Midi
 						if (strictChecking)
 						{
 							throw new FormatException(
-								$"Note ons without note offs {outstandingNoteOns.Count} (file format {fileFormat})");
+								"Note ons without note offs "+outstandingNoteOns.Count+" (file format "+fileFormat+')');
 						}
 					}
 					if(br.BaseStream.Position != startPos + chunkSize)
 					{
-						throw new FormatException($"Read too far {chunkSize}+{startPos}!={br.BaseStream.Position}");
+						throw new FormatException("Read too far "+chunkSize+'+'+startPos+"!="+br.BaseStream.Position);
 					}
 				}
 			}
@@ -181,17 +187,35 @@ namespace NAudio.Midi
 		/// <summary>
 		/// The collection of events in this MIDI file
 		/// </summary>
-		public MidiEventCollection Events => events;
+		public MidiEventCollection Events
+		{
+			get
+			{
+				return events;
+			}
+		}
 
 		/// <summary>
 		/// Number of tracks in this MIDI file
 		/// </summary>
-		public int Tracks => events.Tracks;
+		public int Tracks
+		{
+			get
+			{
+				return events.Tracks;
+			}
+		}
 
 		/// <summary>
 		/// Delta Ticks Per Quarter Note
 		/// </summary>
-		public int DeltaTicksPerQuarterNote => deltaTicksPerQuarterNote;
+		public int DeltaTicksPerQuarterNote
+		{
+			get
+			{
+				return deltaTicksPerQuarterNote;
+			}
+		}
 
 		private void FindNoteOn(NoteEvent offEvent, List<NoteOnEvent> outstandingNoteOns)
 		{
@@ -210,7 +234,7 @@ namespace NAudio.Midi
 			{
 				if (strictChecking)
 				{
-					throw new FormatException($"Got an off without an on {offEvent}");
+					throw new FormatException("Got an off without an on "+offEvent);
 				}
 			}
 		}

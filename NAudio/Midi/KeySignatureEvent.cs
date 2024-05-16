@@ -32,24 +32,38 @@ namespace NAudio.Midi
 		public KeySignatureEvent(int sharpsFlats, int majorMinor, long absoluteTime)
 			: base(MetaEventType.KeySignature, 2, absoluteTime)
 		{
-			this.sharpsFlats = (byte) sharpsFlats;
-			this.majorMinor = (byte) majorMinor;
+			this.sharpsFlats = (byte)sharpsFlats;
+			this.majorMinor = (byte)majorMinor;
 		}
 
 		/// <summary>
 		/// Creates a deep clone of this MIDI event.
 		/// </summary>
-		public override MidiEvent Clone() => (KeySignatureEvent)MemberwiseClone();
+		public override MidiEvent Clone() {
+			return (KeySignatureEvent)MemberwiseClone();
+		}
 
 		/// <summary>
 		/// Number of sharps or flats
 		/// </summary>
-		public int SharpsFlats => (sbyte)sharpsFlats;
+		public int SharpsFlats
+		{
+			get
+			{
+				return (sbyte)sharpsFlats;
+			}
+		}
 
 		/// <summary>
 		/// Major or Minor key
 		/// </summary>
-		public int MajorMinor => majorMinor;
+		public int MajorMinor
+		{
+			get
+			{
+				return majorMinor;
+			}
+		}
 
 		/// <summary>
 		/// Describes this event
@@ -57,7 +71,7 @@ namespace NAudio.Midi
 		/// <returns>String describing the event</returns>
 		public override string ToString()
 		{
-			return String.Format("{0} {1} {2}", base.ToString(), SharpsFlats, majorMinor);
+			return base.ToString() + ' ' + SharpsFlats + ' ' + majorMinor;
 		}
 
 		/// <summary>
