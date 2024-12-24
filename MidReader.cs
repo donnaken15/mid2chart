@@ -1,6 +1,7 @@
 ﻿using System;
 using NAudio.Midi;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace mid2chart {
 	internal static class MidReader {
@@ -16,7 +17,7 @@ namespace mid2chart {
 			for (var i = 1; i < trackCount; i++) {
 				var trackName = midi.Events[i][0] as TextEvent;
 				if (trackName == null) continue;
-				switch (trackName.Text.ToLower()) {
+				switch (trackName.Text.Trim().ToLower()) {
 					case ("events"):
 						//WriteSongSections(midi.Events[i]);
 						WriteSongEvents(midi.Events[i]);
@@ -417,12 +418,29 @@ namespace mid2chart {
 			for (int i = 0; i < track.Count; i++)
 			{
 				var text = track[i] as TextEvent;
-				if (text != null && text.Text.Contains("[section "))
+				if (text != null && text.Text.Trim().StartsWith("[section "))
 					s.sections.Add(new Section((long)Math.Floor(text.AbsoluteTime * scaler), text.Text.Substring(9, text.Text.Length - 10)));
-				else if (text != null && text.Text.Contains("[prc_"))
+				else if (text != null && text.Text.Trim().StartsWith("[prc_"))
 					s.sections.Add(new Section((long)Math.Floor(text.AbsoluteTime * scaler), text.Text.Substring(5, text.Text.Length - 6)));
 			}
 		}
+
+		// GPT calls most of the C3 section keys redundant KV pairing
+		private static Dictionary<string, string> uniquePRC = new Dictionary<string, string>() {
+			{ "ah", "Ah!" },
+			{ "yeah", "Yeah!" },
+			{ "bre", "Big rock ending!" },
+			{ "dj_break", "DJ break" },
+			{ "spacey", "Spacey part" },
+		};
+		private static Dictionary<string, string> uniquePRC_ex = new Dictionary<string, string>() {
+			{ "oohs", "Oohs and Ahs" },
+			{ "lo_melody", "Low melody" },
+			{ "hi_melody", "High melody" },
+			{ "perc_solo", "Percussion solo" },
+			{ "dj_intro", "DJ intro" },
+			{ "dj_solo", "DJ solo" },
+		};
 
 		private static void WriteSongEvents(IList<MidiEvent> track)
 		{
@@ -432,15 +450,30 @@ namespace mid2chart {
 				var text = track[i] as TextEvent;
 				if (text != null)
 				{
+					text.Text = text.Text.Trim();
 					bool brackets = text.Text.StartsWith("[") && text.Text.EndsWith("]");
-					TrackEvent newEvent = new TrackEvent((long)Math.Floor(text.AbsoluteTime * scaler), brackets ? text.Text.Substring(1, text.Text.Length - 2) : text.Text);
+					long tick = (long)Math.Floor(text.AbsoluteTime * scaler);
 					if (text.Text.StartsWith("[prc_"))
 					{
-						newEvent.text = text.Text.Substring(5, text.Text.Length - 6);
-						s.eventsGlobal.Add(newEvent);
+						string name = text.Text.Substring(5, text.Text.Length - 6);
+						if (uniquePRC.ContainsKey(name))
+							name = uniquePRC[name];
+						else
+						{
+							foreach (KeyValuePair<string, string> kv in uniquePRC_ex)
+								name = Regex.Replace(name, "^"+Regex.Escape(kv.Key)+"(_|$)", kv.Value+' ').TrimEnd();
+							name = Regex.Replace(name, "^([a-k])([1-9])?$", "$1 section $2").TrimEnd();
+							name = Regex.Replace(name, "^(pre|post)(chorus|verse)", "$1-$2").Replace("_", " ");
+							// preverse becomes Pre-verse in Rock Band
+						}
+						name = new string(name[0], 1).ToUpper() + name.Substring(1);
+						s.sections.Add(new Section(tick, name)); // are you dumb
 					}
 					else
+					{
+						TrackEvent newEvent = new TrackEvent(tick, brackets ? text.Text.Substring(1, text.Text.Length - 2) : text.Text);
 						s.eventsGlobal.Add(newEvent);
+					}
 				}
 			}
 		}

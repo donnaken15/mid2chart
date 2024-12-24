@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChartWriter.cs" />
-    <Compile Include="Event.cs" />
+    <Compile Include="ChartProps.cs" />
     <Compile Include="MidReader.cs" />
     <Compile Include="NAudio\MergeSort.cs" />
     <Compile Include="NAudio\Midi\ChannelAfterTouchEvent.cs" />
@@ -89,14 +89,10 @@
     <Compile Include="NAudio\Midi\TimeSignatureEvent.cs" />
     <Compile Include="NAudio\Midi\TrackSequenceNumberEvent.cs" />
     <Compile Include="NAudio\Utils\ByteEncoding.cs" />
-    <Compile Include="Note.cs" />
-    <Compile Include="NoteSection.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Section.cs" />
     <Compile Include="Song.cs" />
     <Compile Include="Stopwatch.cs" />
-    <Compile Include="Sync.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
