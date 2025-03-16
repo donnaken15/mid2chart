@@ -25,35 +25,49 @@ namespace mid2chart {
 					case ("part guitar"):
 						WriteNoteSection(midi.Events[i], 0);
 						WriteTapSection(midi.Events[i], 0);
-						if (Program.readOpenNotes) {
-							WriteOpenNotes(midi.Events[i], 0, 0);
-							WriteOpenNotes(midi.Events[i], 0, 1);
-							WriteOpenNotes(midi.Events[i], 0, 2);
-							WriteOpenNotes(midi.Events[i], 0, 3);
+						for (var j = 0; j < 4; j++)
+						{
+							WriteOpenNotes(midi.Events[i], 0, j);
+							s.Tracks[j + (0 << 2)].Sort(delegate (Event a, Event b) {
+								return a.tick.CompareTo(b.tick);
+							});
 						}
 						break;
 					case ("t1 gems"):
 						WriteNoteSection(midi.Events[i], 0);
 						WriteTapSection(midi.Events[i], 0);
-						if (Program.readOpenNotes) {
-							WriteOpenNotes(midi.Events[i], 0, 0);
-							WriteOpenNotes(midi.Events[i], 0, 1);
-							WriteOpenNotes(midi.Events[i], 0, 2);
-							WriteOpenNotes(midi.Events[i], 0, 3);
+						for (var j = 0; j < 4; j++)
+						{
+							WriteOpenNotes(midi.Events[i], 0, j);
+							s.Tracks[j + (0 << 2)].Sort(delegate (Event a, Event b) {
+								return a.tick.CompareTo(b.tick);
+							});
 						}
 						break;
 					case ("part bass"):
 						WriteNoteSection(midi.Events[i], 1);
 						WriteTapSection(midi.Events[i], 1);
-						if (Program.readOpenNotes) {
-							WriteOpenNotes(midi.Events[i], 1, 0);
-							WriteOpenNotes(midi.Events[i], 1, 1);
-							WriteOpenNotes(midi.Events[i], 1, 2);
-							WriteOpenNotes(midi.Events[i], 1, 3);
+						for (var j = 0; j < 4; j++)
+						{
+							WriteOpenNotes(midi.Events[i], 1, j);
+							s.Tracks[j + (1 << 2)].Sort(delegate (Event a, Event b) {
+								return a.tick.CompareTo(b.tick);
+							});
+						}
+						break;
+					case ("part rhythm"):
+						WriteNoteSection(midi.Events[i], 2);
+						WriteTapSection(midi.Events[i], 2);
+						for (var j = 0; j < 4; j++)
+						{
+							WriteOpenNotes(midi.Events[i], 2, j);
+							s.Tracks[j + (2 << 2)].Sort(delegate (Event a, Event b) {
+								return a.tick.CompareTo(b.tick);
+							});
 						}
 						break;
 					case ("part keys"):
-						WriteNoteSection(midi.Events[i], 2);
+						WriteNoteSection(midi.Events[i], 3);
 						break;
 				}
 			}
@@ -79,26 +93,10 @@ namespace mid2chart {
 							}
 						}
 						if (sus == 0) sus = 1;
-						if (sec == 0) {
-							switch (diff) {
-								case 0: s.eGuitarOpenNotes.Add(new NoteSection(tick, sus)); break;
-								case 1: s.mGuitarOpenNotes.Add(new NoteSection(tick, sus)); break;
-								case 2: s.hGuitarOpenNotes.Add(new NoteSection(tick, sus)); break;
-								case 3: s.xGuitarOpenNotes.Add(new NoteSection(tick, sus)); break;
-								default: throw new Exception("Invalid diff value (min. 0 max. 3");
-							}
-						} else if (sec == 1) {
-							switch (diff) {
-								case 0: s.eBassOpenNotes.Add(new NoteSection(tick, sus)); break;
-								case 1: s.mBassOpenNotes.Add(new NoteSection(tick, sus)); break;
-								case 2: s.hBassOpenNotes.Add(new NoteSection(tick, sus)); break;
-								case 3: s.xBassOpenNotes.Add(new NoteSection(tick, sus)); break;
-								default: throw new Exception("Invalid diff value (min. 0 max. 3");
-							}
-						} else
-							throw new Exception("Invalid sec(instr.) value (must be 0 for guitar or 1 for bass).");
+						s.Tracks[diff + (sec << 2)].Add(new Note(Note.S, tick, sus));
 					}
 				}
+				// apparently note 59 is a thing, why is this "standard" all over the place for what dictates where things go and what format
 			}
 		}
 
@@ -121,12 +119,7 @@ namespace mid2chart {
 							}
 						}
 						if (sus == 0) sus = 1;
-						if (sec == 0) {
-							s.tapGuitar.Add(new NoteSection(tick, sus));
-						} else if (sec == 1)
-							s.tapBass.Add(new NoteSection(tick, sus));
-						else
-							throw new Exception("Invalid sec(instr.) value (must be 0 for guitar or 1 for bass).");
+						//s.Tracks[sec << 2].Add(new Note(Note.T, tick, sus));
 					}
 				}
 			}
@@ -141,185 +134,84 @@ namespace mid2chart {
 				if (note != null && note.OffEvent != null)
 				{
 					var tick = RoundToValidValue((long)Math.Floor(note.AbsoluteTime * scaler));
-					// SUS?!?!??! kill me
 					var sus = RoundToValidValue((long)Math.Floor(note.OffEvent.AbsoluteTime * scaler)) - tick;
 					int n = note.NoteNumber;
-					if (sec == 0)
+					if (n >= 60 && n < 103)
 					{
-						switch (n)
+						byte fret = (byte)(n - 60);
+						if (fret % 12 > 6)
+							Console.Error.WriteLine("Got MIDI note out of range: " + n + " @ " +
+								((Diffs)(sec & 3)).ToString() + ' ' + ((Insts)(sec >> 2)).ToString());
+						byte diff = (byte)(Math.Floor((double)(fret / 12))); // fractional bitshift when (floor(x/y) is it)
+						fret %= 12;
+						switch (fret)
 						{
-							case 60: if (sus <= 64L) sus = 0L; s.eGuitar.Add(new Note(Note.G, tick, sus)); break;
-							case 61: if (sus <= 64L) sus = 0L; s.eGuitar.Add(new Note(Note.R, tick, sus)); break;
-							case 62: if (sus <= 64L) sus = 0L; s.eGuitar.Add(new Note(Note.Y, tick, sus)); break;
-							case 63: if (sus <= 64L) sus = 0L; s.eGuitar.Add(new Note(Note.B, tick, sus)); break;
-							case 64: if (sus <= 64L) sus = 0L; s.eGuitar.Add(new Note(Note.O, tick, sus)); break;
-							case 65: if (sus == 0L) sus = 1L; s.eGuitarForceHOPO.Add(new NoteSection(tick, sus)); break;
-							case 66: if (sus == 0L) sus = 1L; s.eGuitarForceStrum.Add(new NoteSection(tick, sus)); break;
-							case 72: if (sus <= 64L) sus = 0L; s.mGuitar.Add(new Note(Note.G, tick, sus)); break;
-							case 73: if (sus <= 64L) sus = 0L; s.mGuitar.Add(new Note(Note.R, tick, sus)); break;
-							case 74: if (sus <= 64L) sus = 0L; s.mGuitar.Add(new Note(Note.Y, tick, sus)); break;
-							case 75: if (sus <= 64L) sus = 0L; s.mGuitar.Add(new Note(Note.B, tick, sus)); break;
-							case 76: if (sus <= 64L) sus = 0L; s.mGuitar.Add(new Note(Note.O, tick, sus)); break;
-							case 77: if (sus == 0L) sus = 1L; s.mGuitarForceHOPO.Add(new NoteSection(tick, sus)); break;
-							case 78: if (sus == 0L) sus = 1L; s.mGuitarForceStrum.Add(new NoteSection(tick, sus)); break;
-							case 84: if (sus <= 64L) sus = 0L; s.hGuitar.Add(new Note(Note.G, tick, sus)); break;
-							case 85: if (sus <= 64L) sus = 0L; s.hGuitar.Add(new Note(Note.R, tick, sus)); break;
-							case 86: if (sus <= 64L) sus = 0L; s.hGuitar.Add(new Note(Note.Y, tick, sus)); break;
-							case 87: if (sus <= 64L) sus = 0L; s.hGuitar.Add(new Note(Note.B, tick, sus)); break;
-							case 88: if (sus <= 64L) sus = 0L; s.hGuitar.Add(new Note(Note.O, tick, sus)); break;
-							case 89: if (sus == 0L) sus = 1L; s.hGuitarForceHOPO.Add(new NoteSection(tick, sus)); break;
-							case 90: if (sus == 0L) sus = 1L; s.hGuitarForceStrum.Add(new NoteSection(tick, sus)); break;
-							case 96: if (sus <= 64L) sus = 0L; s.xGuitar.Add(new Note(Note.G, tick, sus)); break;
-							case 97: if (sus <= 64L) sus = 0L; s.xGuitar.Add(new Note(Note.R, tick, sus)); break;
-							case 98: if (sus <= 64L) sus = 0L; s.xGuitar.Add(new Note(Note.Y, tick, sus)); break;
-							case 99: if (sus <= 64L) sus = 0L; s.xGuitar.Add(new Note(Note.B, tick, sus)); break;
-							case 100: if (sus <= 64L) sus = 0L; s.xGuitar.Add(new Note(Note.O, tick, sus)); break;
-							case 101: if (sus == 0L) sus = 1L; s.xGuitarForceHOPO.Add(new NoteSection(tick, sus)); break;
-							case 102: if (sus == 0L) sus = 1L; s.xGuitarForceStrum.Add(new NoteSection(tick, sus)); break;
-							case 103:
-								if (Program.gh1)
-								{
-									s.xGuitar.Add(new NoteSection(tick, sus));
-									s.hGuitar.Add(new NoteSection(tick, sus));
-									s.mGuitar.Add(new NoteSection(tick, sus));
-									s.eGuitar.Add(new NoteSection(tick, sus));
-								}
-								else
-								// treat this note as a solo marker
-								{
-									newSolo = 1;
-									s.xGuitar.Add(new TrackEvent(tick, "solo"));
-									s.hGuitar.Add(new TrackEvent(tick, "solo"));
-									s.mGuitar.Add(new TrackEvent(tick, "solo"));
-									s.eGuitar.Add(new TrackEvent(tick, "solo"));
-								}
+							case 5:
+							case 6:
+								if (sus == 0)
+									sus = 1;
+								fret = (byte)(Note.H + (fret - 5));
 								break;
-							case 116:
-								if (!Program.gh1)
-								{
-									s.xGuitar.Add(new NoteSection(tick, sus));
-									s.hGuitar.Add(new NoteSection(tick, sus));
-									s.mGuitar.Add(new NoteSection(tick, sus));
-									s.eGuitar.Add(new NoteSection(tick, sus));
-								}
+							default:
+								if (sus < 64)
+									sus = 0;
 								break;
 						}
-					}
-					else if (sec == 1)
-					{
-						switch (n)
-						{
-							case 60: if (sus <= 64L) sus = 0L; s.eBass.Add(new Note(Note.G, tick, sus)); break;
-							case 61: if (sus <= 64L) sus = 0L; s.eBass.Add(new Note(Note.R, tick, sus)); break;
-							case 62: if (sus <= 64L) sus = 0L; s.eBass.Add(new Note(Note.Y, tick, sus)); break;
-							case 63: if (sus <= 64L) sus = 0L; s.eBass.Add(new Note(Note.B, tick, sus)); break;
-							case 64: if (sus <= 64L) sus = 0L; s.eBass.Add(new Note(Note.O, tick, sus)); break;
-							case 65: s.eBassForceHOPO.Add(new NoteSection(tick, sus)); break;
-							case 66: s.eBassForceStrum.Add(new NoteSection(tick, sus)); break;
-							case 72: if (sus <= 64L) sus = 0L; s.mBass.Add(new Note(Note.G, tick, sus)); break;
-							case 73: if (sus <= 64L) sus = 0L; s.mBass.Add(new Note(Note.R, tick, sus)); break;
-							case 74: if (sus <= 64L) sus = 0L; s.mBass.Add(new Note(Note.Y, tick, sus)); break;
-							case 75: if (sus <= 64L) sus = 0L; s.mBass.Add(new Note(Note.B, tick, sus)); break;
-							case 76: if (sus <= 64L) sus = 0L; s.mBass.Add(new Note(Note.O, tick, sus)); break;
-							case 77: s.mBassForceHOPO.Add(new NoteSection(tick, sus)); break;
-							case 78: s.mBassForceStrum.Add(new NoteSection(tick, sus)); break;
-							case 84: if (sus <= 64L) sus = 0L; s.hBass.Add(new Note(Note.G, tick, sus)); break;
-							case 85: if (sus <= 64L) sus = 0L; s.hBass.Add(new Note(Note.R, tick, sus)); break;
-							case 86: if (sus <= 64L) sus = 0L; s.hBass.Add(new Note(Note.Y, tick, sus)); break;
-							case 87: if (sus <= 64L) sus = 0L; s.hBass.Add(new Note(Note.B, tick, sus)); break;
-							case 88: if (sus <= 64L) sus = 0L; s.hBass.Add(new Note(Note.O, tick, sus)); break;
-							case 89: s.hBassForceHOPO.Add(new NoteSection(tick, sus)); break;
-							case 90: s.hBassForceStrum.Add(new NoteSection(tick, sus)); break;
-							case 96: if (sus <= 64L) sus = 0L; s.xBass.Add(new Note(Note.G, tick, sus)); break;
-							case 97: if (sus <= 64L) sus = 0L; s.xBass.Add(new Note(Note.R, tick, sus)); break;
-							case 98: if (sus <= 64L) sus = 0L; s.xBass.Add(new Note(Note.Y, tick, sus)); break;
-							case 99: if (sus <= 64L) sus = 0L; s.xBass.Add(new Note(Note.B, tick, sus)); break;
-							case 100: if (sus <= 64L) sus = 0L; s.xBass.Add(new Note(Note.O, tick, sus)); break;
-							case 101: s.xBassForceHOPO.Add(new NoteSection(tick, sus)); break;
-							case 102: s.xBassForceStrum.Add(new NoteSection(tick, sus)); break;
-							case 103:
-								if (Program.gh1)
-								{
-									s.xBass.Add(new NoteSection(tick, sus));
-									s.hBass.Add(new NoteSection(tick, sus));
-									s.mBass.Add(new NoteSection(tick, sus));
-									s.eBass.Add(new NoteSection(tick, sus));
-								}
-								else
-								{
-									newSolo = 1;
-									s.xBass.Add(new TrackEvent(tick, "solo"));
-									s.hBass.Add(new TrackEvent(tick, "solo"));
-									s.mBass.Add(new TrackEvent(tick, "solo"));
-									s.eBass.Add(new TrackEvent(tick, "solo"));
-								}
-								break;
-							case 116:
-								if (!Program.gh1)
-								{
-									s.xBass.Add(new NoteSection(tick, sus));
-									s.hBass.Add(new NoteSection(tick, sus));
-									s.mBass.Add(new NoteSection(tick, sus));
-									s.eBass.Add(new NoteSection(tick, sus));
-								}
-								break;
-						}
-					}
-					else if (sec == 2)
-					{
-						switch (n)
-						{
-							case 60: if (sus <= 64L) sus = 0L; s.eKeys.Add(new Note(Note.G, tick, sus)); break;
-							case 61: if (sus <= 64L) sus = 0L; s.eKeys.Add(new Note(Note.R, tick, sus)); break;
-							case 62: if (sus <= 64L) sus = 0L; s.eKeys.Add(new Note(Note.Y, tick, sus)); break;
-							case 63: if (sus <= 64L) sus = 0L; s.eKeys.Add(new Note(Note.B, tick, sus)); break;
-							case 64: if (sus <= 64L) sus = 0L; s.eKeys.Add(new Note(Note.O, tick, sus)); break;
-							case 72: if (sus <= 64L) sus = 0L; s.mKeys.Add(new Note(Note.G, tick, sus)); break;
-							case 73: if (sus <= 64L) sus = 0L; s.mKeys.Add(new Note(Note.R, tick, sus)); break;
-							case 74: if (sus <= 64L) sus = 0L; s.mKeys.Add(new Note(Note.Y, tick, sus)); break;
-							case 75: if (sus <= 64L) sus = 0L; s.mKeys.Add(new Note(Note.B, tick, sus)); break;
-							case 76: if (sus <= 64L) sus = 0L; s.mKeys.Add(new Note(Note.O, tick, sus)); break;
-							case 84: if (sus <= 64L) sus = 0L; s.hKeys.Add(new Note(Note.G, tick, sus)); break;
-							case 85: if (sus <= 64L) sus = 0L; s.hKeys.Add(new Note(Note.R, tick, sus)); break;
-							case 86: if (sus <= 64L) sus = 0L; s.hKeys.Add(new Note(Note.Y, tick, sus)); break;
-							case 87: if (sus <= 64L) sus = 0L; s.hKeys.Add(new Note(Note.B, tick, sus)); break;
-							case 88: if (sus <= 64L) sus = 0L; s.hKeys.Add(new Note(Note.O, tick, sus)); break;
-							case 96: if (sus <= 64L) sus = 0L; s.xKeys.Add(new Note(Note.G, tick, sus)); break;
-							case 97: if (sus <= 64L) sus = 0L; s.xKeys.Add(new Note(Note.R, tick, sus)); break;
-							case 98: if (sus <= 64L) sus = 0L; s.xKeys.Add(new Note(Note.Y, tick, sus)); break;
-							case 99: if (sus <= 64L) sus = 0L; s.xKeys.Add(new Note(Note.B, tick, sus)); break;
-							case 100: if (sus <= 64L) sus = 0L; s.xKeys.Add(new Note(Note.O, tick, sus)); break;
-							case 103:
-								if (Program.gh1)
-								{
-									s.xKeys.Add(new NoteSection(tick, sus));
-									s.hKeys.Add(new NoteSection(tick, sus));
-									s.mKeys.Add(new NoteSection(tick, sus));
-									s.eKeys.Add(new NoteSection(tick, sus));
-								}
-								else
-								{
-									newSolo = 1;
-									s.xKeys.Add(new TrackEvent(tick, "solo"));
-									s.hKeys.Add(new TrackEvent(tick, "solo"));
-									s.mKeys.Add(new TrackEvent(tick, "solo"));
-									s.eKeys.Add(new TrackEvent(tick, "solo"));
-								}
-								break;
-							case 116:
-								if (!Program.gh1)
-								{
-									s.xKeys.Add(new NoteSection(tick, sus));
-									s.hKeys.Add(new NoteSection(tick, sus));
-									s.mKeys.Add(new NoteSection(tick, sus));
-									s.eKeys.Add(new NoteSection(tick, sus));
-								}
-								break;
-						}
+						s.Tracks[diff + (sec << 2)].Add(new Note(fret, tick, sus));
 					}
 					else
 					{
-						throw new Exception("Invalid sec(instr.) value (must be 0 for guitar, 1 for bass or 2 for keys)");
+						switch (n)
+						{
+							// https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/5-Fret%20Guitar.md
+							// also, look into for ChartEdit class: [song] hopo_frequency and sustain_cutoff_threshold
+							// but the game already trims the note to just a normal note if too short
+							// i just realized too I GOT CALLED OUT! ("More than one freestyle phrase may be placed during a BRE")
+							case 103:
+							case 104:
+							case 105:
+							case 106:
+							case 116:
+								if (n == 103 && !Program.gh1)
+								{
+									// treat this note as a solo marker when <RB1
+									newSolo = 1;
+									for (var j = 0; j < (int)Diffs.Count; j++)
+										s.Tracks[j + (sec << 2)].Add(new TrackEvent(tick, "solo"));
+								}
+								else if (n == 104)
+								{
+									for (var j = 0; j < (int)Diffs.Count; j++)
+										s.Tracks[j + (sec << 2)].Add(new Note(Note.T, tick, sus));
+								}
+								else
+								{
+									int fret = -1;
+									switch (n)
+									{
+										case 103:
+											if (Program.gh1)
+												fret = Special.SP;
+											else
+												throw new Exception("wtf " + n);
+											break;
+										case 105:
+											fret = Special.P1;
+											break;
+										case 106:
+											fret = Special.P2;
+											break;
+										case 116:
+											fret = Special.SP;
+											break;
+										default:
+											throw new Exception("wtf " + n);
+									}
+									for (var j = 0; j < (int)Diffs.Count; j++)
+										s.Tracks[j + (sec << 2)].Add(new Special(fret, tick, sus));
+								}
+								break;
+						}
 					}
 				}
 				var off = track[i] as NoteEvent;
@@ -330,54 +222,15 @@ namespace mid2chart {
 						var tick = RoundToValidValue((long)Math.Floor(off.AbsoluteTime * scaler));
 						var sus = RoundToValidValue((long)Math.Floor(off.AbsoluteTime * scaler)) - tick;
 						int n = off.NoteNumber;
-						if (sec == 0)
+						switch (n)
 						{
-							switch (n)
-							{
-								case 103:
-									if (!Program.gh1)
-									{
-										s.xGuitar.Add(new TrackEvent(tick + sus, "soloend"));
-										s.hGuitar.Add(new TrackEvent(tick + sus, "soloend"));
-										s.mGuitar.Add(new TrackEvent(tick + sus, "soloend"));
-										s.eGuitar.Add(new TrackEvent(tick + sus, "soloend"));
-									}
-									break;
-							}
-						}
-						else if (sec == 1)
-						{
-							switch (n)
-							{
-								case 103:
-									if (!Program.gh1)
-									{
-										s.xBass.Add(new TrackEvent(tick + sus, "soloend"));
-										s.hBass.Add(new TrackEvent(tick + sus, "soloend"));
-										s.mBass.Add(new TrackEvent(tick + sus, "soloend"));
-										s.eBass.Add(new TrackEvent(tick + sus, "soloend"));
-									}
-									break;
-							}
-						}
-						else if (sec == 2)
-						{
-							switch (n)
-							{
-								case 103:
-									if (!Program.gh1)
-									{
-										s.xKeys.Add(new TrackEvent(tick + sus, "soloend"));
-										s.hKeys.Add(new TrackEvent(tick + sus, "soloend"));
-										s.mKeys.Add(new TrackEvent(tick + sus, "soloend"));
-										s.eKeys.Add(new TrackEvent(tick + sus, "soloend"));
-									}
-									break;
-							}
-						}
-						else
-						{
-							throw new Exception("Invalid sec(instr.) value (must be 0 for guitar, 1 for bass or 2 for keys)");
+							case 103:
+								if (!Program.gh1)
+								{
+									for (var j = 0; j < (int)Diffs.Count; j++)
+										s.Tracks[j + (sec << 2)].Add(new TrackEvent(tick + sus, "soloend"));
+								}
+								break;
 						}
 					}
 					else
@@ -386,28 +239,12 @@ namespace mid2chart {
 				var text = track[i] as TextEvent;
 				if (text != null)
 				{
-					bool brackets = text.Text.StartsWith("[") && text.Text.EndsWith("]");
-					TrackEvent newEvent = new TrackEvent((long)Math.Floor(text.AbsoluteTime * scaler), brackets ? text.Text.Substring(1, text.Text.Length - 2) : text.Text);
-					switch (sec)
+					if (text.MetaEventType != MetaEventType.SequenceTrackName)
 					{
-						case 0:
-							s.xGuitar.Add(newEvent);
-							s.hGuitar.Add(newEvent);
-							s.mGuitar.Add(newEvent);
-							s.eGuitar.Add(newEvent);
-							break;
-						case 1:
-							s.xBass.Add(newEvent);
-							s.hBass.Add(newEvent);
-							s.mBass.Add(newEvent);
-							s.eBass.Add(newEvent);
-							break;
-						case 2:
-							s.xKeys.Add(newEvent);
-							s.hKeys.Add(newEvent);
-							s.mKeys.Add(newEvent);
-							s.eKeys.Add(newEvent);
-							break;
+						bool brackets = text.Text.StartsWith("[") && text.Text.EndsWith("]");
+						TrackEvent newEvent = new TrackEvent((long)Math.Floor(text.AbsoluteTime * scaler), brackets ? text.Text.Substring(1, text.Text.Length - 2) : text.Text);
+						for (var j = 0; j < (int)Diffs.Count; j++)
+							s.Tracks[j + (sec << 2)].Add(newEvent);
 					}
 				}
 			}

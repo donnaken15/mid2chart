@@ -3,6 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace mid2chart {
+	public enum TrackNames
+	{
+		Single,
+		DoubleBass,
+		DoubleRhythm,
+		EnhancedGuitar
+	}
 	internal static class ChartWriter {
 		private static bool dummy;
 		private static int hopoThresh = 64;
@@ -34,10 +41,7 @@ namespace mid2chart {
 					file.WriteLine("[SyncTrack]");
 					file.WriteLine("{");
 					foreach (Sync sync in s.sync) {
-						if (!sync.isBPM)
-							file.WriteLine("\t" + sync.tick + " = TS " + sync.num);
-						else
-							file.WriteLine("\t" + sync.tick + " = B " + sync.num);
+							file.WriteLine("\t" + sync.tick + " = " + ((!sync.isBPM) ? "TS" : "B") + ' ' + sync.num);
 					}
 					file.WriteLine("}");
 					file.WriteLine("[Events]");
@@ -51,101 +55,42 @@ namespace mid2chart {
 						file.WriteLine("\t" + ss.tick + " = E \"" + ss.text + "\"");
 					}
 					file.WriteLine("}");
-					if (s.eGuitar.Count > 0) {
-						if (Program.keysOnGuitar) file.WriteLine("[EasyEnhancedGuitar]");
-						else if (Program.bassOnGuitar) file.WriteLine("[EasyDoubleBass]");
-						else file.WriteLine("[EasySingle]");
-						file.WriteLine("{");
-						WriteNotes(file, s.eGuitar, s.eGuitarForceHOPO, s.eGuitarForceStrum, s.tapGuitar, s.eGuitarOpenNotes, false);
-						file.WriteLine("}");
-					}
-					if (s.eBass.Count > 0) {
-						if (Program.keysOnBass) file.WriteLine("[EasyEnhancedGuitar]");
-						else if (Program.bassOnGuitar) file.WriteLine("[EasySingle]");
-						else file.WriteLine("[EasyDoubleBass]");
-						file.WriteLine("{");
-						WriteNotes(file, s.eBass, s.eBassForceHOPO, s.eBassForceStrum, s.tapBass, s.eBassOpenNotes, false);
-						file.WriteLine("}");
-					}
-					if (s.eKeys.Count > 0) {
-						if (Program.keysOnBass) file.WriteLine("[EasyDoubleBass]");
-						else if (Program.keysOnGuitar) file.WriteLine("[EasySingle]");
-						else file.WriteLine("[EasyEnhancedGuitar]");
-						file.WriteLine("{");
-						WriteNotes(file, s.eKeys, new List<NoteSection>(), new List<NoteSection>(), new List<NoteSection>(), new List<NoteSection>(), true);
-						file.WriteLine("}");
-					}
-					if (s.mGuitar.Count > 0) {
-						if (Program.keysOnGuitar) file.WriteLine("[MediumEnhancedGuitar]");
-						else if (Program.bassOnGuitar) file.WriteLine("[MediumDoubleBass]");
-						else file.WriteLine("[MediumSingle]");
-						file.WriteLine("{");
-						WriteNotes(file, s.mGuitar, s.mGuitarForceHOPO, s.mGuitarForceStrum, s.tapGuitar, s.mGuitarOpenNotes, false);
-						file.WriteLine("}");
-					}
-					if (s.mBass.Count > 0) {
-						if (Program.keysOnBass) file.WriteLine("[MediumEnhancedGuitar]");
-						else if (Program.bassOnGuitar) file.WriteLine("[MediumSingle]");
-						else file.WriteLine("[MediumDoubleBass]");
-						file.WriteLine("{");
-						WriteNotes(file, s.mBass, s.mBassForceHOPO, s.mBassForceStrum, s.tapBass, s.mBassOpenNotes, false);
-						file.WriteLine("}");
-					}
-					if (s.mKeys.Count > 0) {
-						if (Program.keysOnBass) file.WriteLine("[MediumDoubleBass]");
-						else if (Program.keysOnGuitar) file.WriteLine("[MediumSingle]");
-						else file.WriteLine("[MediumEnhancedGuitar]");
-						file.WriteLine("{");
-						WriteNotes(file, s.mKeys, new List<NoteSection>(), new List<NoteSection>(), new List<NoteSection>(), new List<NoteSection>(), true);
-						file.WriteLine("}");
-					}
-					if (s.hGuitar.Count > 0) {
-						if (Program.keysOnGuitar) file.WriteLine("[HardEnhancedGuitar]");
-						else if (Program.bassOnGuitar) file.WriteLine("[HardDoubleBass]");
-						else file.WriteLine("[HardSingle]");
-						file.WriteLine("{");
-						WriteNotes(file, s.hGuitar, s.hGuitarForceHOPO, s.hGuitarForceStrum, s.tapGuitar, s.hGuitarOpenNotes, false);
-						file.WriteLine("}");
-					}
-					if (s.hBass.Count > 0) {
-						if (Program.keysOnBass) file.WriteLine("[HardEnhancedGuitar]");
-						else if (Program.bassOnGuitar) file.WriteLine("[HardSingle]");
-						else file.WriteLine("[HardDoubleBass]");
-						file.WriteLine("{");
-						WriteNotes(file, s.hBass, s.hBassForceHOPO, s.hBassForceStrum, s.tapBass, s.hBassOpenNotes, false);
-						file.WriteLine("}");
-					}
-					if (s.hKeys.Count > 0) {
-						if (Program.keysOnBass) file.WriteLine("[HardDoubleBass]");
-						else if (Program.keysOnGuitar) file.WriteLine("[HardSingle]");
-						else file.WriteLine("[HardEnhancedGuitar]");
-						file.WriteLine("{");
-						WriteNotes(file, s.hKeys, new List<NoteSection>(), new List<NoteSection>(), new List<NoteSection>(), new List<NoteSection>(), true);
-						file.WriteLine("}");
-					}
-					if (s.xGuitar.Count > 0) {
-						if (Program.keysOnGuitar) file.WriteLine("[ExpertEnhancedGuitar]");
-						else if (Program.bassOnGuitar) file.WriteLine("[ExpertDoubleBass]");
-						else file.WriteLine("[ExpertSingle]");
-						file.WriteLine("{");
-						WriteNotes(file, s.xGuitar, s.xGuitarForceHOPO, s.xGuitarForceStrum, s.tapGuitar, s.xGuitarOpenNotes, false);
-						file.WriteLine("}");
-					}
-					if (s.xBass.Count > 0) {
-						if (Program.keysOnBass) file.WriteLine("[ExpertEnhancedGuitar]");
-						else if (Program.bassOnGuitar) file.WriteLine("[ExpertSingle]");
-						else file.WriteLine("[ExpertDoubleBass]");
-						file.WriteLine("{");
-						WriteNotes(file, s.xBass, s.xBassForceHOPO, s.xBassForceStrum, s.tapBass, s.xBassOpenNotes, false);
-						file.WriteLine("}");
-					}
-					if (s.xKeys.Count > 0) {
-						if (Program.keysOnBass) file.WriteLine("[ExpertDoubleBass]");
-						else if (Program.keysOnGuitar) file.WriteLine("[ExpertSingle]");
-						else file.WriteLine("[ExpertEnhancedGuitar]");
-						file.WriteLine("{");
-						WriteNotes(file, s.xKeys, new List<NoteSection>(), new List<NoteSection>(), new List<NoteSection>(), new List<NoteSection>(), true);
-						file.WriteLine("}");
+					for (var i = 0; i < s.Tracks.Length; i++)
+					{
+						Console.WriteLine(((Diffs)(i & 3)).ToString() + ' ' + ((Insts)(i >> 2)) + " (" + s.Tracks[i].Count + ')');
+						if (s.Tracks[i].Count > 0)
+						{
+							int ii = i >> 2;
+							if (Program.keysOnGuitar)
+							{
+								// there has to be a way to simplify this
+								switch ((TrackNames)i)
+								{
+									case TrackNames.EnhancedGuitar:
+										i = (int)(TrackNames.Single);
+										break;
+									case TrackNames.Single:
+										i = (int)(TrackNames.EnhancedGuitar);
+										break;
+								}
+							}
+							else if (Program.bassOnGuitar)
+							{
+								switch ((TrackNames)i)
+								{
+									case TrackNames.Single:
+										i = (int)(TrackNames.DoubleBass);
+										break;
+									case TrackNames.DoubleBass:
+										i = (int)(TrackNames.Single);
+										break;
+								}
+							}
+							file.WriteLine('[' + ((Diffs)(i & 3)).ToString() + ((TrackNames)(ii)).ToString() + ']');
+							file.WriteLine("{");
+							WriteNotes(file, s.Tracks[(i & 3) + (ii << 2)], false);
+							file.WriteLine("}");
+						}
 					}
 				}
 			}
@@ -165,10 +110,11 @@ namespace mid2chart {
 			return str;
 		}
 
-		private static void WriteNotes(StreamWriter file, List<Event> notes, List<NoteSection> forceHOPO, List<NoteSection> forceStrum, List<NoteSection> tap, List<NoteSection> openNotes, bool isKeys) {
+		private static void WriteNotes(StreamWriter file, List<Event> notes, bool isKeys) {
 			TrackEvent _event = null;
 			Note n = null;
-			foreach (Event e in notes) {
+			foreach (Event e in notes)
+			{
 				n = e as Note;
 				_event = e as TrackEvent;
 				if (_event != null && !_event.text.StartsWith("PART ") && _event.text != "")
@@ -177,41 +123,37 @@ namespace mid2chart {
 				}
 				if (n != null)
 				{
-					if (Program.readOpenNotes && IsTap(n, openNotes)) {
+					if (Program.readOpenNotes && IsTap(n, notes)) {
 						if (dummy || Program.editable)
 							file.WriteLine("\t" + n.tick + " = E O");
 						else
 							file.WriteLine("\t" + n.tick + " = N 7 " + n.sus);
 					} else {
-						file.WriteLine("\t" + n.tick + " = N " + n.note + " " + n.sus);
+						if (n.note != Note.H && n.note != Note.T && n.note != Note.ohplsno)
+							file.WriteLine("\t" + n.tick + " = N " + n.note + " " + n.sus);
 					}
 					if (GetNextNoteDiff(n, notes) > 0) {
-						if (IsTap(n, tap) && !IsTap(n, openNotes))
-							if (dummy || Program.editable)
-								file.WriteLine("\t" + n.tick + " = E T");
-							else
-								file.WriteLine("\t" + n.tick + " = N 6 0");
-						else if ((!isKeys && IsForced(n, notes, forceHOPO, forceStrum, openNotes)) || (isKeys && IsForcedKeys(n, notes)))
-							if (Program.editable)
-								file.WriteLine("\t" + n.tick + " = E F");
-							else
-								file.WriteLine("\t" + n.tick + " = N 5 0");
+						if (IsTap(n, notes))
+							file.WriteLine("\t" + n.tick + ((dummy || Program.editable) ? " = E T" : " = N 6 0"));
+						else if (IsForced(n, notes))
+							file.WriteLine("\t" + n.tick + ((Program.editable) ? " = E F" : " = N 5 0"));
 					}
 					continue;
 				}
-				var sp = e as NoteSection;
-				if (sp != null) {
-					file.WriteLine("\t" + sp.tick + " = S 2 " + sp.sus);
+				var sp = e as Special;
+				if (sp != null)
+				{
+					file.WriteLine("\t" + sp.tick + " = S " + sp.flag + " " + sp.sus);
 				}
 			}
 		}
 
-		private static
-			bool IsForced(Note n, List<Event> notes, List<NoteSection> forceHOPO, List<NoteSection> forceStrum, List<NoteSection> openNotes) {
+		private static bool IsForced(Note n, List<Event> notes) {
 			bool check = false;
 			long tickDiff = GetPreviousNoteDiff(n, notes);
-			if (tickDiff <= hopoThresh && !IsChord(n, notes) && !SameNoteAsPrevious(n, notes, openNotes)) {
-				if ((Program.rbLogic && ContainsNoteFromPreviousChord(n, notes)) || (Program.readOpenNotes && Program.openNoteStrum && IsTap(n, openNotes))) {
+			if (tickDiff <= hopoThresh && !IsChord(n, notes) && !SameNoteAsPrevious(n, notes))
+			{
+				if ((Program.rbLogic && ContainsNoteFromPreviousChord(n, notes)) || (Program.readOpenNotes && Program.openNoteStrum && IsTap(n, notes))) {
 					//applies harmonix's post-chord ho/po logic
 					//this means that this note contains a note from the previous chord
 					//therefore it's a strum, unless it's forced otherwise
@@ -219,7 +161,12 @@ namespace mid2chart {
 					//also works when forcing open notes as strum by default
 					//unless forced otherwise ofc
 					check = true;
-					foreach (var hopo in forceHOPO) {
+					foreach (var hopo in notes)
+					{
+						if (!(hopo is Note))
+							continue;
+						if ((hopo as Note).note != Note.H)
+							continue;
 						if (hopo.tick > n.tick) break;
 						if (n.tick >= hopo.tick && n.tick < (hopo.tick + hopo.sus)) {
 							check = false;
@@ -228,25 +175,44 @@ namespace mid2chart {
 					}
 				} else {
 					//regular HOPO - look on forceStrum
-					foreach (var s in forceStrum) {
+					foreach (var s in notes)
+					{
+						if (!(s is Note))
+							continue;
+						if ((s as Note).note != Note.ohplsno)
+							continue;
 						if (s.tick > n.tick) break;
-						if (n.tick >= s.tick && n.tick < (s.tick + s.sus)) {
-							check = true; break;
+						if (n.tick >= s.tick && n.tick < (s.tick + s.sus))
+						{
+							check = true;
+							break;
 						}
 					}
 				}
 				if (Program.eighthHopo && (tickDiff > 64 && tickDiff <= 96)) check = !check;
-			} else /*if (tickDiff > hopoThresh || IsChord(n, notes) || SameNoteAsPrevious(n, notes))*/
-			  { //not HOPO - look on forceHOPO
-				foreach (var hopo in forceHOPO) {
+			} else { /*if (tickDiff > hopoThresh || IsChord(n, notes) || SameNoteAsPrevious(n, notes))*/
+				//not HOPO - look on forceHOPO
+				foreach (var hopo in notes)
+				{
+					if (!(hopo is Note))
+						continue;
+					if ((hopo as Note).note != Note.H)
+						continue;
 					if (hopo.tick > n.tick) break;
-					if (n.tick >= hopo.tick && n.tick < (hopo.tick + hopo.sus)) {
+					if (n.tick >= hopo.tick && n.tick < (hopo.tick + hopo.sus))
+					{
 						check = true;
-						if (Program.fixDoubleHopo && (SameNoteAsPrevious(n, notes, openNotes) || SameChordAsPrevious(n, notes))) { check = false; break; }
-						if (Program.dontForceChords && IsChord(n, notes)) check = false; break;
+						if (Program.fixDoubleHopo && (SameNoteAsPrevious(n, notes) || SameChordAsPrevious(n, notes))) {
+							check = false;
+							break;
+						}
+						if (Program.dontForceChords && IsChord(n, notes))
+							check = false;
+						break;
 					}
 				}
-				if (Program.sixteenthStrum && (tickDiff > 32 && tickDiff <= 64) && !IsChord(n, notes) && !SameNoteAsPrevious(n, notes, openNotes)) check = !check;
+				if (Program.sixteenthStrum && (tickDiff > 32 && tickDiff <= 64) && !IsChord(n, notes) && !SameNoteAsPrevious(n, notes))
+					check = !check;
 			}
 			return check;
 		}
@@ -347,13 +313,13 @@ namespace mid2chart {
 			return false;
 		}
 
-		private static bool SameNoteAsPrevious(Note n, List<Event> notes, List<NoteSection> openNotes) {
+		private static bool SameNoteAsPrevious(Note n, List<Event> notes) {
 			if (notes.IndexOf(n) == 0) return false;
 			for (int i = notes.IndexOf(n) - 1; i >= 0; i--) {
 				var n2 = notes[i] as Note;
 				if (n2 != null) {
-					if (Program.readOpenNotes && IsTap(n, openNotes)) return IsTap(n2, openNotes);
-					if (Program.readOpenNotes && IsTap(n2, openNotes)) return IsTap(n, openNotes);
+					if (Program.readOpenNotes && IsTap(n, notes)) return IsTap(n2, notes);
+					if (Program.readOpenNotes && IsTap(n2, notes)) return IsTap(n, notes);
 					else return !IsChord(n2, notes) && n2.note == n.note;
 				}
 			}
@@ -403,22 +369,24 @@ namespace mid2chart {
 			return 192;
 		}
 
-		private static bool IsTap(Note n, List<NoteSection> tap) {
-			bool check = false;
-			foreach (NoteSection t in tap) {
+		private static bool IsTap(Note n, List<Event> notes) {
+			foreach (Event t in notes) {
+				if (!(t is Note))
+					continue;
 				if (t.tick > n.tick) break;
-				if (n.tick >= t.tick && n.tick < (t.tick + t.sus)) {
-					check = true; break;
+				if (n.tick >= t.tick && n.tick < (t.tick + t.sus) && n.note == Note.T) {
+					return true;
 				}
 			}
-			return check;
+			return false;
 		}
 
 		private static long GetNextNoteDiff(Note n, List<Event> notes) {
 			if (notes.IndexOf(n) == notes.Count - 1) return 1;
 			for (int i = notes.IndexOf(n) + 1; i < notes.Count; i++) {
 				var nextNote = notes[i] as Note;
-				if (nextNote != null) return notes[i].tick - n.tick;
+				if (nextNote != null)
+					return notes[i].tick - n.tick;
 			}
 			return 1;
 		}

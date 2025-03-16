@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace mid2chart {
 	static class Program {
 		internal static bool editable, rbLogic, broken, fixForces, fixSp, fixDoubleHopo, dontForceChords,
 			fixOverlaps, eighthHopo, sixteenthStrum, keysOnBass, keysOnGuitar, bassOnGuitar,
-			gh1, skipPause, readOpenNotes, openNoteStrum, dontWriteDummy, unforceNAudioStrictMode, tapToHopo;
+			gh1, skipPause, readOpenNotes, openNoteStrum, unforceNAudioStrictMode, tapToHopo; // dontWriteDummy
 		public static void Main(string[] args)
 		{
 			string dir = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
@@ -13,27 +14,34 @@ namespace mid2chart {
 			{
 				if (args.Length == 0)
 				{
+					Dictionary<string, string> usagePage = new Dictionary<string, string>()
+					{
+						{"e",  "export an editable FeedBack file (as in no \"N 5 0\"s and \"N 6 0\"s, but \"E *\"s and \"E T\"s instead)."},
+						{"r",  "use Rock Band/Harmonix's HO/PO logic (if a note after a chord is part of the previous chord, then it is a strum."},
+						{"b",  "bypass broken chord adaptation, and leave them as they are (if there's any)."},
+						{"f",  "use if some notes aren't being properly forced. Be aware, though, that this might force some notes unproperly."},
+						{"s",  "use if some notes aren't in their proper star power sections. Be aware, though, that this might put some notes unproperly in star power sections."},
+						{"u",  "unforce NAudio's strict midi checking."},
+						{"d",  "remove double HO/POs."},
+						{"c",  "avoid forcing chords (useful for non-GH3+ users or console players)."},
+						{"t",  "convert tap notes as forced HO/POs (useful for non-GH3+ users or console players)."},
+						{"o",  "clip overlapping sustains."},
+						{"8",  "set HO/PO threshold to 1/8. If the song.ini already specifies a 1/8 HO/PO threshold, use this parameter to set it back to 1/12."},
+						{"16", "set 1/16 notes as strums. If the song.ini already specifies that, use this parameter to set it back to default."},
+						{"1",  "read midi note 103 as star power instead of 116."},
+						{"k",  "skip the \"Press any key to exit\" message, and just exit."},
+						//{"m",  "do NOT write a (Dummy).chart file"}, // won't matter these days
+						{"p",  "read and write open notes."},
+						{"os", "convert open notes as strum by default, unless forced otherwise."},
+						{"kb", "swap keys and bass when converting the midi."},
+						{"kg", "swap keys and guitar when converting the midi."},
+						{"gb", "swap guitar and bass when converting the midi."},
+					};
 					Console.WriteLine("Usage: drag and drop one or more .mid files into this executable file.");
-					Console.WriteLine("Use the parameter \"-e\" to export an editable FeedBack file (as in no \"N 5 0\"s and \"N 6 0\"s, but \"E *\"s and \"E T\"s instead).");
-					Console.WriteLine("Use the parameter \"-r\" to use Rock Band/Harmonix's HO/PO logic (if a note after a chord is part of the previous chord, then it is a strum.");
-					Console.WriteLine("Use the parameter \"-b\" to bypass broken chord adaptation, and leave them as they are (if there's any).");
-					Console.WriteLine("Use the parameter \"-f\" if some notes aren't being properly forced. Be aware, though, that this might force some notes unproperly.");
-					Console.WriteLine("Use the parameter \"-s\" if some notes aren't in their proper star power sections. Be aware, though, that this might put some notes unproperly in star power sections.");
-					Console.WriteLine("Use the parameter \"-u\" to unforce NAudio's strict midi checking.");
-					Console.WriteLine("Use the parameter \"-d\" to remove double HO/POs.");
-					Console.WriteLine("Use the parameter \"-c\" to avoid forcing chords (useful for non-GH3+ users or console players).");
-					Console.WriteLine("Use the parameter \"-t\" to convert tap notes as forced HO/POs (useful for non-GH3+ users or console players).");
-					Console.WriteLine("Use the parameter \"-o\" to clip overlapping sustains.");
-					Console.WriteLine("Use the parameter \"-8\" to set HO/PO threshold to 1/8. If the song.ini already specifies a 1/8 HO/PO threshold, use this parameter to set it back to 1/12.");
-					Console.WriteLine("Use the parameter \"-16\" to set 1/16 notes as strums. If the song.ini already specifies that, use this parameter to set it back to default.");
-					Console.WriteLine("Use the parameter \"-1\" to read midi note 103 as star power instead of 116.");
-					Console.WriteLine("Use the parameter \"-k\" to skip the \"Press any key to exit\" message, and just exit.");
-					Console.WriteLine("Use the parameter \"-m\" to NOT write a (Dummy).chart file");
-					Console.WriteLine("Use the parameter \"-p\" to read and write open notes.");
-					Console.WriteLine("Use the parameter \"-os\" to convert open notes as strum by default, unless forced otherwise.");
-					Console.WriteLine("Use the parameter \"-kb\" to swap keys and bass when converting the midi.");
-					Console.WriteLine("Use the parameter \"-kg\" to swap keys and guitar when converting the midi.");
-					Console.WriteLine("Use the parameter \"-gb\" to swap guitar and bass when converting the midi.");
+					foreach (KeyValuePair<string, string> cmd in usagePage)
+					{
+						Console.WriteLine("    -"+cmd.Key.PadRight(3)+" - "+cmd.Value);
+					}
 					Console.WriteLine("Be aware that you can only use ONE of the track swapping parameters.");
 				}
 				else
@@ -57,7 +65,7 @@ namespace mid2chart {
 							case "-16": sixteenthStrum = true; break;
 							case "-1": gh1 = true; break;
 							case "-k": skipPause = true; break;
-							case "-m": dontWriteDummy = true; break;
+							//case "-m": dontWriteDummy = true; break;
 							case "-p": readOpenNotes = true; break;
 							case "-os": openNoteStrum = true; break;
 							case "-kb":
@@ -150,13 +158,13 @@ namespace mid2chart {
 								else
 								{
 									string filename;
-									if (!dontWriteDummy && (s.tapGuitar.Count > 0 || s.tapBass.Count > 0))
+									/*if (!dontWriteDummy && (s.tapGuitar.Count > 0 || s.tapBass.Count > 0))
 									{
 										filename = args[i].Substring(0, args[i].Length - 4) + " (Dummy).chart";
 										Stopwatch.Step("Writing chart: " + filename);
 										ChartWriter.WriteChart(s, filename, true);
 										Stopwatch.EndStep();
-									}
+									}*/
 									filename = args[i].Substring(0, args[i].Length - 3) + "chart";
 									Stopwatch.Step("Writing chart: " + filename);
 									ChartWriter.WriteChart(s, filename, false);
