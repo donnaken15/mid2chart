@@ -7,6 +7,7 @@ namespace mid2chart {
 	{
 		Single,
 		DoubleBass,
+		DoubleLead,
 		DoubleRhythm,
 		EnhancedGuitar
 	}
@@ -57,7 +58,7 @@ namespace mid2chart {
 					file.WriteLine("}");
 					for (var i = 0; i < s.Tracks.Length; i++)
 					{
-						Console.WriteLine(((Diffs)(i & 3)).ToString() + ' ' + ((Insts)(i >> 2)) + " (" + s.Tracks[i].Count + ')');
+						//Console.WriteLine(((Diffs)(i & 3)).ToString() + ' ' + ((Insts)(i >> 2)) + " (" + s.Tracks[i].Count + ')');
 						if (s.Tracks[i].Count > 0)
 						{
 							int ii = i >> 2;

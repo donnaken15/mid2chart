@@ -15,6 +15,7 @@ namespace mid2chart
 	{
 		Guitar,
 		Bass,
+		Lead,
 		Rhythm,
 		Keys,
 		Count

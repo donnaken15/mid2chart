@@ -15,60 +15,53 @@ namespace mid2chart {
 			scaler = 192.0D / midi.DeltaTicksPerQuarterNote;
 			WriteSync(midi.Events[0]);
 			for (var i = 1; i < trackCount; i++) {
-				var trackName = midi.Events[i][0] as TextEvent;
-				if (trackName == null) continue;
+				TextEvent trackName = null;
+				bool gotName = false;
+				for (var j = 0; j < midi.Events[i].Count; j++)
+				{
+					trackName = midi.Events[i][j] as TextEvent;
+					if (trackName != null)
+						if (trackName.MetaEventType == MetaEventType.SequenceTrackName)
+						{
+							gotName = true;
+							break;
+						}
+				}
+				if (!gotName) continue;
+				Insts t = Insts.Count;
 				switch (trackName.Text.Trim().ToLower()) {
 					case ("events"):
 						//WriteSongSections(midi.Events[i]);
 						WriteSongEvents(midi.Events[i]);
 						break;
 					case ("part guitar"):
-						WriteNoteSection(midi.Events[i], 0);
-						WriteTapSection(midi.Events[i], 0);
-						for (var j = 0; j < 4; j++)
-						{
-							WriteOpenNotes(midi.Events[i], 0, j);
-							s.Tracks[j + (0 << 2)].Sort(delegate (Event a, Event b) {
-								return a.tick.CompareTo(b.tick);
-							});
-						}
-						break;
 					case ("t1 gems"):
-						WriteNoteSection(midi.Events[i], 0);
-						WriteTapSection(midi.Events[i], 0);
-						for (var j = 0; j < 4; j++)
-						{
-							WriteOpenNotes(midi.Events[i], 0, j);
-							s.Tracks[j + (0 << 2)].Sort(delegate (Event a, Event b) {
-								return a.tick.CompareTo(b.tick);
-							});
-						}
+						t = Insts.Guitar;
 						break;
 					case ("part bass"):
-						WriteNoteSection(midi.Events[i], 1);
-						WriteTapSection(midi.Events[i], 1);
-						for (var j = 0; j < 4; j++)
-						{
-							WriteOpenNotes(midi.Events[i], 1, j);
-							s.Tracks[j + (1 << 2)].Sort(delegate (Event a, Event b) {
-								return a.tick.CompareTo(b.tick);
-							});
-						}
+						t = Insts.Bass;
+						break;
+					case ("part guitar coop"):
+						t = Insts.Lead;
 						break;
 					case ("part rhythm"):
-						WriteNoteSection(midi.Events[i], 2);
-						WriteTapSection(midi.Events[i], 2);
-						for (var j = 0; j < 4; j++)
-						{
-							WriteOpenNotes(midi.Events[i], 2, j);
-							s.Tracks[j + (2 << 2)].Sort(delegate (Event a, Event b) {
-								return a.tick.CompareTo(b.tick);
-							});
-						}
+						t = Insts.Rhythm;
 						break;
 					case ("part keys"):
-						WriteNoteSection(midi.Events[i], 3);
+						WriteNoteSection(midi.Events[i], (int)Insts.Keys);
 						break;
+				}
+				if (t != Insts.Count)
+				{
+					WriteNoteSection(midi.Events[i], (int)t);
+					WriteTapSection(midi.Events[i], (int)t);
+					for (var j = 0; j < 4; j++)
+					{
+						WriteOpenNotes(midi.Events[i], (int)t, j);
+						s.Tracks[j + ((int)t << 2)].Sort(delegate (Event a, Event b) {
+							return a.tick.CompareTo(b.tick);
+						});
+					}
 				}
 			}
 			return s;
@@ -287,6 +280,8 @@ namespace mid2chart {
 				var text = track[i] as TextEvent;
 				if (text != null)
 				{
+					if (text.MetaEventType != MetaEventType.TextEvent)
+						continue;
 					text.Text = text.Text.Trim();
 					bool brackets = text.Text.StartsWith("[") && text.Text.EndsWith("]");
 					long tick = (long)Math.Floor(text.AbsoluteTime * scaler);
