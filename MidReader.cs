@@ -86,7 +86,9 @@ namespace mid2chart {
 							}
 						}
 						if (sus == 0) sus = 1;
-						s.Tracks[diff + (sec << 2)].Add(new Note(Note.S, tick, sus));
+						var notetrack = s.Tracks[diff + (sec << 2)];
+						notetrack.RemoveAll(e => e.tick == tick); // why
+						notetrack.Add(new Note(Note.S, tick, sus));
 					}
 				}
 				// apparently note 59 is a thing, why is this "standard" all over the place for what dictates where things go and what format
@@ -143,7 +145,7 @@ namespace mid2chart {
 							case 6:
 								if (sus == 0)
 									sus = 1;
-								fret = (byte)(Note.H + (fret - 5));
+								fret = (fret == 6) ? (byte)Note.ohplsno : (byte)(Note.H + (fret - 5));
 								break;
 							default:
 								if (sus < 64)
@@ -158,7 +160,7 @@ namespace mid2chart {
 						{
 							// https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/5-Fret%20Guitar.md
 							// also, look into for ChartEdit class: [song] hopo_frequency and sustain_cutoff_threshold
-							// but the game already trims the note to just a normal note if too short
+							// but the game already trims the note to just a normal note if too short (BECAUSE OF A BUG)
 							// i just realized too I GOT CALLED OUT! ("More than one freestyle phrase may be placed during a BRE")
 							case 103:
 							case 104:
@@ -167,7 +169,7 @@ namespace mid2chart {
 							case 116:
 								if (n == 103 && !Program.gh1)
 								{
-									// treat this note as a solo marker when <RB1
+									// treat this note as a solo section marker when <RB1
 									newSolo = 1;
 									for (var j = 0; j < (int)Diffs.Count; j++)
 										s.Tracks[j + (sec << 2)].Add(new TrackEvent(tick, "solo"));
@@ -180,26 +182,30 @@ namespace mid2chart {
 								else
 								{
 									int fret = -1;
-									switch (n)
-									{
-										case 103:
-											if (Program.gh1)
+									if (n == Program.SPNote) {
+										fret = Program.SPNote;
+									} else switch (n)
+										{
+											//case 103:
+											//	if (Program.gh1)
+											//		fret = Special.SP;
+											//	else
+											//		throw new Exception("wtf " + n);
+											//	break;
+											case 105:
+												fret = Special.P1;
+												break;
+											case 106:
+												fret = Special.P2;
+												break;
+											case 116: // fallback ???
 												fret = Special.SP;
-											else
-												throw new Exception("wtf " + n);
-											break;
-										case 105:
-											fret = Special.P1;
-											break;
-										case 106:
-											fret = Special.P2;
-											break;
-										case 116:
-											fret = Special.SP;
-											break;
-										default:
-											throw new Exception("wtf " + n);
-									}
+												break;
+											default:
+												//throw new Exception("wtf " + n);
+												Console.WriteLine("wtf "+n);
+												break;
+										}
 									for (var j = 0; j < (int)Diffs.Count; j++)
 										s.Tracks[j + (sec << 2)].Add(new Special(fret, tick, sus));
 								}
@@ -315,7 +321,12 @@ namespace mid2chart {
 				var ts = me as TimeSignatureEvent;
 				if (ts != null) {
 					var tick = RoundToValidValue((long)Math.Floor(ts.AbsoluteTime*scaler));
-					s.sync.Add(new Sync(tick, ts.Numerator, false));
+					//var d = ts.Denominator; // HACK, JUST MAKE THE STANDALONE LIBRARY ALREADY STUPID WES
+					Sync sync = new Sync(tick, ts.Numerator, false);
+					sync.extra = ts.Denominator;
+					//if (d != 2)
+					//	sync.extra = 1 << ts.Denominator; // apparently also pow2 in .chart
+					s.sync.Add(sync);
 					continue;
 				}
 				var tempo = me as TempoEvent;

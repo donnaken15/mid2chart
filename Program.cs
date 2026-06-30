@@ -1,12 +1,17 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace mid2chart {
-	static class Program {
+	static class Program
+	{
+		//[DllImport("kernel32.dll", EntryPoint = "GetPrivateProfileInt", CharSet = CharSet.Unicode)]
+		//private static extern int GI(string a, string k, int d, string f);
 		internal static bool editable, rbLogic, broken, fixForces, fixSp, fixDoubleHopo, dontForceChords,
 			fixOverlaps, eighthHopo, sixteenthStrum, keysOnBass, keysOnGuitar, bassOnGuitar,
 			gh1, skipPause, readOpenNotes, openNoteStrum, unforceNAudioStrictMode, tapToHopo; // dontWriteDummy
+		public static int SPNote = 103;
 		public static void Main(string[] args)
 		{
 			string dir = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
@@ -200,12 +205,30 @@ namespace mid2chart {
 				newPath += pathArray[i] + "\\";
 			}
 			newPath += "song.ini";
+			//{ // wrote this not realizing this was here, i did a search but didn't find "song.ini" in these main files // HIDDEN IN PLAIN SIGHT
+			//	Stopwatch.Step("Reading song.ini");
+			//	// default: 64 = 192/3
+			//	if (eighthHopo) ChartWriter.hopoThresh = 96;
+			//	if (sixteenthStrum) ChartWriter.hopoThresh = 32;
+			//	else
+			//	{
+			//		var sini = Path.GetDirectoryName(args[i]) + "\\song.ini"; // HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
+			//		if (File.Exists(sini))
+			//		{
+			//			ChartWriter.hopoThresh = GI("song", "hopo_frequency", 96, sini);
+			//			Console.WriteLine("> Got alternate hopo threshold value: " + ChartWriter.hopoThresh);
+			//			SPNote = GI("song", "multiplier_note", 103, sini); // historically 103 (<RB1), modernistically 116 (>=RB1)
+			//			Console.WriteLine("> Got specific starpower phrase lane: Note " + SPNote);
+			//		}
+			//	}
+			//	Stopwatch.EndStep();
+			//}
 			if (File.Exists(newPath)) {
 				try {
 					string line;
 					StreamReader file = new StreamReader(newPath);
-					bool eighthHopo = false;
-					bool sixteenthStrum = false;
+					//bool eighthHopo = false;
+					//bool sixteenthStrum = false;
 					while ((line = file.ReadLine()) != null) {
 						var strArray = line.Split('=');
 						if (strArray.Length > 0) {
@@ -217,15 +240,19 @@ namespace mid2chart {
 								case "charter": s.charter = strArray[1].Trim(); break;
 								case "delay": s.offset = long.Parse(strArray[1].Trim()); break;
 								case "eighthnote_hopo": if (strArray[1].Trim() == "1") eighthHopo = true; break;
+								case "multiplier_note":
+									int.TryParse(strArray[1].Trim(), out SPNote);
+									break;
 								case "hopo_frequency":
-									if (strArray[1].Trim() == "250") eighthHopo = true;
-									else if (strArray[1].Trim() == "80") sixteenthStrum = true;
+									int.TryParse(strArray[1].Trim(), out ChartWriter.hopoThresh);
+									//if (strArray[1].Trim() == "250") eighthHopo = true; // actual moron
+									//else if (strArray[1].Trim() == "80") sixteenthStrum = true;
 									break;
 							}
 						}
 					}
-					if (eighthHopo) Program.eighthHopo = !Program.eighthHopo;
-					if (sixteenthStrum) Program.sixteenthStrum = !Program.sixteenthStrum;
+					//if (eighthHopo) Program.eighthHopo = !Program.eighthHopo;
+					//if (sixteenthStrum) Program.sixteenthStrum = !Program.sixteenthStrum;
 					file.Close();
 				} catch (Exception e) {
 					Console.WriteLine("The song.ini file could not be read:");

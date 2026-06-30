@@ -65,7 +65,7 @@
 
 	public class Sync
 	{
-		public long tick, num;
+		public long tick, num, extra;
 		public bool isBPM;
 
 		public Sync(long tick, long num, bool isBPM)

@@ -12,11 +12,9 @@ namespace mid2chart {
 		EnhancedGuitar
 	}
 	internal static class ChartWriter {
+		public static int hopoThresh = 64;
 		private static bool dummy;
-		private static int hopoThresh = 64;
 		internal static void WriteChart(Song s, string path, bool dummy) {
-			if (Program.eighthHopo) hopoThresh = 96;
-			if (Program.sixteenthStrum) hopoThresh = 32;
 			ChartWriter.dummy = dummy;
 			using (var output = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.ReadWrite)) {
 				using (var file = new StreamWriter(output)) {
@@ -42,7 +40,7 @@ namespace mid2chart {
 					file.WriteLine("[SyncTrack]");
 					file.WriteLine("{");
 					foreach (Sync sync in s.sync) {
-							file.WriteLine("\t" + sync.tick + " = " + ((!sync.isBPM) ? "TS" : "B") + ' ' + sync.num);
+						file.WriteLine("\t" + sync.tick + " = " + ((!sync.isBPM) ? "TS" : "B") + ' ' + sync.num + (sync.extra == 0 || sync.extra == 2?"":" "+sync.extra)); // HACK FOR FCPREMIX 3/8
 					}
 					file.WriteLine("}");
 					file.WriteLine("[Events]");
@@ -376,6 +374,7 @@ namespace mid2chart {
 					continue;
 				if (t.tick > n.tick) break;
 				if (n.tick >= t.tick && n.tick < (t.tick + t.sus) && n.note == Note.T) {
+					//Console.WriteLine("{0} {1} {2}", n.tick, n.sus, n.note);
 					return true;
 				}
 			}
